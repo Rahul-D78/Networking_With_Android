@@ -4,6 +4,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
+import com.google.gson.FieldNamingPolicy
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
@@ -25,23 +28,21 @@ class MainActivity : AppCompatActivity() {
             .url("https://api.github.com/users/kunal-kushwaha")
             .build()
 
+        //object of Gson
+        val gson = GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .create()
+
         GlobalScope.launch(Dispatchers.Main) {
             val response = withContext(Dispatchers.IO){okHttpClient.newCall(request).execute().body?.string()}
-            //Log.i("Networking", "${response.body?.toString()}")
 
-            val obj = JSONObject(response)
-            //obj.getString("login")
-//          Log.i("Networking", obj.getString("login"));
+            val user = gson.fromJson<User>(response, User::class.java)
 
-            val image = obj.getString("avatar_url")
-            val login = obj.getString("login")
-            val name = obj.getString("name")
             val showImage = Picasso.get()
-                .load(image)
+                .load(user.avatarUrl)
                 .into(imageView)
 
-            textView.text = name
-            textView2.text = login
+            textView.text = user.name
+            textView2.text = user.login
 
         }
 
